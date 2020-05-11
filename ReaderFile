@@ -1,0 +1,452 @@
+src/app/header
+1. HeaderComponent.ts
+
+import { Component, OnInit } from '@angular/core';
+import { ProductserviceService } from 'src/app/service/productservice.service';
+import { Router, ActivatedRoute } from '@angular/router';
+
+@Component({
+  selector: 'app-header',
+  templateUrl: './header.component.html',
+  styleUrls: ['./header.component.css']
+})
+export class HeaderComponent implements OnInit {
+
+  constructor(private servive:ProductserviceService,private route:ActivatedRoute,private router:Router) { }
+
+  //logic to get the totals from the service
+
+  public totalvalue;
+  ngOnInit(): void {
+    this.servive.totalSubject.subscribe(totalValue=>{
+      this.totalvalue=totalValue;
+    })
+  }
+
+homePage(){
+  this.router.navigate(["/shopping-cart"])
+}
+cartItems(){
+
+}
+myOrders(){
+
+}
+manageOrders(){
+
+}
+manageProducts(){
+
+}
+checkOut(){
+
+}
+login(){
+
+}
+logOut(){
+
+}
+}
+
+
+2.Header.html
+<mat-toolbar class="mat-primary"> 
+    <img src="/assets/img/lion.png"  class="img">
+     
+  <button mat-raised-button class="position-right" color="grey" (click)="homePage();"> Home </button>
+  <button mat-raised-button class="position-right" color="primary" (click)="myOrders();">My Orders</button>
+  <button mat-raised-button class="position-right" color="primary" (click)="manageOrders();">Manage Orders</button>
+  <button mat-raised-button class="position-right" color="primary"(click)="manageProducts();">Manage Products</button>
+  <div style="margin-left:1%; margin-right:1%; cursor:pointer" (click)="cartItems()" >	 
+  <mat-icon mat-raised-button  class="position-right" >shopping_cart</mat-icon>
+  {{totalvalue}}
+   </div>
+      <button mat-raised-button class="position-right" color="primary"(click)="checkOut();">Check Out</button>
+      <button mat-raised-button class="position-right" color="primary" (click)="login();">login</button>
+      <!-- <button mat-button class="position-left" (click)="logOut();">Logout</button> -->
+  </mat-toolbar>
+  
+  3.Home.component.ts
+  import { Component, OnInit } from '@angular/core';
+import { ProductserviceService } from 'src/app/service/productservice.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
+@Component({
+  selector: 'app-home',
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.css']
+})
+export class HomeComponent implements OnInit {
+
+  products: any
+  totalcartvalue = 0;
+  value:number;
+  conditionToDisaply=false;
+  orders = [];
+  
+
+
+  constructor(private productservice :ProductserviceService,public snackBar: MatSnackBar) { 
+    this.products=productservice.product;
+
+  }
+
+  ngOnInit(): void {
+  }
+  
+ 
+
+  addToCart(indexValue, propductId) {
+
+    //snackbar notification
+
+   if (this.products[indexValue].quantity != 0)
+    {
+        this.snackBar.open( "  Added to Cart", this.products[indexValue].name,{ duration: 2000, })
+    }
+    else if(this.products[indexValue].quantity == 0)
+    {
+        this.snackBar.open( "  Product Unavailable", this.products[indexValue].name,{ duration: 2000, })
+    }
+  
+//conditions to display +  and - buttons
+
+
+    //Add to cart 
+
+
+    this.totalcartvalue +=1 ;
+    console.log( "Total items in cart:=" +this.totalcartvalue )
+    let count = 1
+    let push = true
+    console.log(indexValue + "   " + propductId)
+    if (this.products[indexValue].quantity == 0) {
+    
+      return
+
+    }
+   
+    for (let ords of  this.productservice.orders) {
+      if (ords.indexVal == indexValue) {
+        console.log("Item already added")
+        ords.quantity++;
+        push = false
+        this.conditionToDisaply=true
+
+      }
+    }
+    if (push) {
+       this.productservice.orders.push({ "indexVal": indexValue, "quantity": count })
+       this.conditionToDisaply=true
+    }
+    this.products[indexValue].quantity--;
+
+  this.productservice.sendTotal(this.totalcartvalue);
+  
+  //send to service
+
+
+    
+  }
+  removeFromCart(indexValue, propductId)
+  {
+    this.totalcartvalue-=1;
+     this.products[indexValue].quantity++;
+     for( let ord of  this.productservice.orders)
+     {
+       if(ord.indexVal==indexValue)
+       {
+         ord.quantity-=1
+       }
+     }
+
+     this.snackBar.open( "  Removed From Cart  ",this.products[indexValue].name, { duration: 2000, })
+     this.productservice.sendTotal(this.totalcartvalue)
+     
+  
+
+  }
+
+//get quanity
+
+getQuantity(i)
+{
+  for(let orders of  this.productservice.orders)
+  {
+      if(orders.indexVal==i)
+      {
+        return orders.quantity
+      }
+  }
+}
+
+
+//button to see orders
+  show() {
+    this.productservice.sendOrders(this.orders ) 
+    console.log( this.productservice.orders)
+  }
+
+  public onCardClick(evt: MouseEvent){
+    console.log(evt);
+  }
+  event_list = [
+    {
+      event:' Event 1',
+      eventLocation:'Bangalore',
+      eventDescription:'In bangalore, first event is going to happen. Please be careful about it',
+      img: 'https://picsum.photos/1100/500?random&t=1',
+      eventStartDate: new Date('2019/05/20'),
+      eventEndingDate: new Date('2019/05/24')
+    },
+     {
+      event:' Event 2',
+      eventLocation:'Dubai',
+      eventDescription:'Dubai is another place to host so,e, first event is going to happen. Please be careful about it',
+      img: 'https://picsum.photos/1100/500?random&t=3',
+      eventStartDate: new Date('2019/07/28'),
+      eventEndingDate: new Date('2019/07/30')
+    },
+     {
+      event:' Event 3',
+      eventLocation:'New York',
+      eventDescription:'NewYork sits on top of event hosting',
+      img: 'https://picsum.photos/1100/500?random&t=4',
+      eventStartDate: new Date('2020/05/20'),
+      eventEndingDate: new Date('2020/05/24')
+    },
+     {
+      event:' Event 4',
+      eventLocation:'Singapore',
+      eventDescription:'Singapore is another great hosting city',
+      img: 'https://picsum.photos/1100/500?random&t=6',
+      eventStartDate: new Date('2018/05/20'),
+      eventEndingDate: new Date('2018/05/24')
+    },
+    {
+      event:' Event 5',
+      eventLocation:'Berlin',
+      eventDescription: 'Berlin is best place to hang on',
+      img: 'https://picsum.photos/1100/500?random&t=7',
+      eventStartDate: new Date('2017/07/10'),
+      eventEndingDate: new Date('2017/08/14')
+    },
+    {
+      event:' Event 6',
+      eventLocation:'Mumbai',
+      eventDescription:'Mumbai is hub of startups',
+      img: 'https://picsum.photos/1100/500?random&t=8',
+      eventStartDate: new Date(),
+      eventEndingDate: new Date()
+    },
+    {
+      event:' Event 7',
+      eventLocation:'Barcelona',
+      eventDescription:'Barcelona is another good city',
+      img: 'https://picsum.photos/1100/500?random&t=6',
+      eventStartDate: new Date(),
+      eventEndingDate: new Date()
+    },
+  ]
+    // upcoming_events =  this.event_list.filter( event => event.eventStartDate > new Date());
+
+}
+
+4.HomeComponent.html
+<div class="row">
+		<div class="container">
+			<!-- <div class="row"> -->
+			  <!-- <div class="col-lg-10.5 py-3"> -->
+				<h2 class="pb-2">We are located in</h2>
+				<ngb-carousel *ngIf="event_list">
+				  <ng-template ngbSlide *ngFor="let event of event_list">
+					<img [src]="event.img" alt="Random slide">
+					<div class="carousel-caption">
+					  <h3>{{ event.eventLocation }}</h3>
+					  <p [innerText]="event.eventDescription"></p>
+					</div>
+				  </ng-template>
+				</ngb-carousel>
+			  <!-- </div> -->
+			<!-- </div> -->
+		  </div>
+		</div>
+	<div class="row">
+	<!-- <div class="col-lg-1">
+	</div> -->
+
+	<div class="container">
+		 <!-- <button mat-button (click)="openSnackBar()">Show snack-bar</button>  -->
+		<!-- content -->
+		<mat-grid-list cols="3" rowHeight="320px" color="cyan">
+			<mat-grid-tile *ngFor="let p of products, let i=index">
+				<mat-card class="content" (click)="onCardClick($event)">
+					<div><img class="md-card-image img" src="{{p.url}}"> </div>
+					<mat-card-title>{{p.name}}</mat-card-title>
+					<div class="content">
+						<button mat-button>${{ p.price}}</button>
+						<button mat-button>Available:{{p.quantity}}</button>
+					</div>
+					<mat-card-actions class="accent">
+						<button *ngIf="!(conditionToDisaply && getQuantity(i)>0)" 
+							mat-raised-button color="primary" class="btn-size" (click)="addToCart(i,p.id)">Add to Cart</button>
+
+							<span *ngIf="(conditionToDisaply &&getQuantity(i)>0)">
+								<button mat-raised-button color="accent" class="btn-size-small" (click)="removeFromCart(i,p.id)"> - </button>
+								  <label class="label-small">Items in Cart {{getQuantity(i)}} </label>
+								<button mat-raised-button color="accent" class="btn-size-small" (click)="addToCart(i,p.id)" > + </button>
+						</span>
+					</mat-card-actions>				
+				</mat-card>
+			</mat-grid-tile>
+		</mat-grid-list>
+		<!-- show button the items ion cart-->
+		<button mat-raised-button color="primary" class="btn-size-medium" (click)="show()"> Add to Cart</button>
+	</div>	
+</div>
+
+5.Home.Component.css
+.back{
+  background-color: #f0f0f0;
+}
+.img{
+
+ height: 80px;
+ width: 220px;
+ margin: 10px
+
+}
+.btn-size{
+  width: 100%;
+}
+mat-card{
+ margin: 0%
+}
+.btn-size-medium{
+  justify-content: flex-end;
+  justify-content: center;
+  width: 50%;
+}
+.btn-size-small{
+  min-width: 10px;
+}
+.label-small{
+  width: 58%;
+  text-align: center
+}
+
+6.Productservice.service.ts
+import { Injectable } from '@angular/core';
+import { Title } from '@angular/platform-browser';
+import { Subject } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ProductserviceService {
+  public totalSubject = new Subject();
+  public orderSubject = new Subject();
+  constructor() { }
+  orders=[];
+  product=[
+    {
+      "id":"0",
+          "name":"Apple",
+          "quantity":2,
+          "price":12,
+          "url":"https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcQFTzHyYYm1_A9hp7EvD190DHFF9mJKp9P8Ujz1IAPUWZ5CHvwP&usqp=CAU"
+    },
+    {
+      "id":"1",
+          "name":"banana",
+          "quantity":2,
+          "price":12,
+          "url":"https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTTZ1SGEP9YRr0w6_VXgyu4eKGPBBAAfos4FkcT-eWIGWdcv2JQ&usqp=CAU"
+    },
+    {
+      "id":"2",
+          "name":"Apple",
+          "quantity":2,
+          "price":12,
+          "url":"https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcQdsBSs9aznzlLCzu6PusogZh0pE1xoE2RdOpDd8mzPSVXe_DbW&usqp=CAU"
+    },
+    {
+      "id":"3",
+          "name":"Fruits",
+          "quantity":2,
+          "price":12,
+          "url":"https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTdTOhfOWM6flp1_3SkBhShiRE_M0pA3EdlRJ-yonqGNP6gPtIW&usqp=CAU"
+    },
+    {
+      "id":"4",
+          "name":"Carrot",
+          "quantity":2,
+          "price":12,
+          "url":"https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcREhYnYKwOmpFST-x6O6jjQyRTp9cQyCQNw_jCA1YfmgeZeNmGF&usqp=CAU"
+    },
+    {
+      "id":"5",
+          "name":"Fruits",
+          "quantity":2,
+          "price":12,
+          "url":"https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcQtEvBNU4ZxhomGk5Cl6tr2k9U1AZtKzntEuxpOGCb1PfrAt4XQ&usqp=CAU"
+    },
+    {
+      "id":"6",
+          "name":"Mango",
+          "quantity":2,
+          "price":12,
+          "url":"https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcScHqzj7NTYujOrpf1tTsmyGKqhrvNngjCErfv5dHBr8CNqfJWG&usqp=CAU"
+    },
+    {
+      "id":"7",
+          "name":"Pears",
+          "quantity":2,
+          "price":12,
+          "url":"https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcREhYnYKwOmpFST-x6O6jjQyRTp9cQyCQNw_jCA1YfmgeZeNmGF&usqp=CAU"
+    },
+
+
+  ]
+   //products end
+
+sendTotal(totalVal)
+{ 
+  this.totalSubject.next(totalVal)
+}
+
+
+
+//orders
+
+  sendOrders(orders)
+  {
+    this.orderSubject.next(orders)
+    console.log(orders + "from service")
+  }
+
+}
+7.
+<app-header></app-header> 
+<div class="container">
+</div> 
+<div class="over">
+ <router-outlet></router-outlet> 
+</div>
+<app-footer></app-footer>
+
+8. footer
+<mat-toolbar class="docs-footer" color="secondary"> 
+    <img src="/assets/img/lion.png"  class="img">
+    <footer>
+        <div class="container">
+          <a class="logo-font" routerLink="/">subLabh</a>
+          <span class="attribution">
+            &copy; {{ today | date: 'yyyy' }}.
+            An interactive portals from <a href="https://bhatiroyals.io">BhatiRoyals</a>.
+            Code licensed under BR.
+          </span>
+        </div>
+      </footer>
+  </mat-toolbar>
